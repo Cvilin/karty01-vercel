@@ -14,23 +14,23 @@ export const ResendOTP = Email({
     return generateOTP(6);
   },
   async sendVerificationRequest({ identifier: email, token }) {
-    const response = await fetch(`${process.env.OTP_ENDPOINT}`, {
+    const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email,
-        token,
-        chatId: process.env.CHAT_ID,
-        appName: `${process.env.APP_NAME}` || "My App",
-        secretKey: process.env.SECRET_KEY,
+        from: process.env.FROM_EMAIL,
+        to: email,
+        subject: `Váš PIN kód pro přihlášení: ${token}`,
+        html: `<p>Váš ověřovací PIN kód je: <strong>${token}</strong></p>`,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || "Failed to send verification email");
+      throw new Error(errorData.message || errorData.error || "Failed to send verification email");
     }
   },
 });
